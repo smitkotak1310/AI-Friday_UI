@@ -1,0 +1,638 @@
+Use this upgraded prompt in Claude:
+
+You are a **Principal AI Solution Architect + Senior Full-Stack Engineer + Enterprise UX Designer**.
+
+I want you to design an **updated solution from scratch** for an **enterprise-grade AI assistant platform** for **Indian citizen services**, focused on:
+
+* **Passport services**
+* **Driving Licence services**
+
+The platform must include:
+
+* **Authentication**
+* **Citizen chat assistant**
+* **Admin panel**
+* **Enterprise UI**
+* **FastAPI backend**
+* **HTML + CSS + JavaScript frontend**
+* **Practical RAG/KAG architecture**
+* **Smart multi-model usage**
+* **Clear folder structure that is easy to understand for a beginner in Python/FastAPI**
+
+I do **not** want generic output.
+I want a **realistic, premium, production-minded architecture and implementation plan**.
+
+---
+
+# VERY IMPORTANT MODEL CONSTRAINT
+
+You must choose the **best model suite only from these available models**:
+
+* `azure/genailab-maas-gpt-35-turbo`
+* `azure/genailab-maas-gpt-4o`
+* `azure/genailab-maas-gpt-4o-mini`
+* `azure/genailab-maas-text-embedding-3-large`
+* `azure/genailab-maas-whisper`
+* `azure_ai/genailab-maas-DeepSeek-R1`
+* `azure_ai/genailab-maas-DeepSeek-V3-0324`
+
+You are **not allowed** to recommend any model outside this list.
+
+---
+
+# MODEL SELECTION TASK
+
+First, analyze the available models and decide the **best balanced model suite** for this platform.
+
+I want you to explicitly choose and justify:
+
+## 1. Primary chat/generation model
+
+Choose the best main model for most user responses.
+
+## 2. Lightweight classification/routing model
+
+Choose the best cheaper/faster model for:
+
+* intent classification
+* service detection
+* small routing tasks
+* simple acknowledgements if needed
+
+## 3. Reasoning / fallback model
+
+Choose the best model only for:
+
+* difficult reasoning
+* ambiguous multi-step queries
+* complex policy comparison
+* fallback when main model is not enough
+
+## 4. Embedding model
+
+Choose the best model for vector embeddings and document retrieval.
+
+## 5. Speech model
+
+Choose the model for voice input transcription if voice is included.
+
+Then explain:
+
+* why each chosen model is best
+* why some models should **not** be used as primary
+* how to reduce cost and latency
+* how to avoid over-engineering
+* when fallback should happen
+* when not to use the heavy reasoning model
+
+---
+
+# IMPORTANT EXPECTED MODEL DECISION STYLE
+
+I want a **practical enterprise choice**, not flashy over-engineering.
+
+For example:
+
+* use one fast model for classifier/router
+* use one strong model as primary answer model
+* use one reasoning model only when needed
+* use one embedding model for RAG
+* use Whisper for voice only if voice is enabled
+
+The final design must feel:
+
+* efficient
+* easy to maintain
+* understandable
+* cost-aware
+* low-latency
+* scalable
+
+Do **not** create an unnecessary complicated model chain.
+
+---
+
+# BEGINNER-FRIENDLY FOLDER STRUCTURE REQUIREMENT
+
+I do not have very deep Python/FastAPI knowledge, so the project structure must be:
+
+* clean
+* simple to understand
+* modular
+* beginner-friendly
+* enterprise-looking but not confusing
+* clearly named files/folders
+* easy to navigate
+
+I want folder names and file names that make sense immediately.
+
+Avoid overly abstract structure unless truly necessary.
+
+For every major file, explain:
+
+* why it exists
+* what it does
+* what logic goes there
+
+---
+
+# PRIMARY GOAL
+
+Build a complete updated solution from scratch with these modules:
+
+1. **Authentication System**
+2. **Citizen Chat Assistant**
+3. **Admin Panel**
+4. **Enterprise UI**
+5. **AI Retrieval + Multi-model architecture**
+6. **FastAPI backend**
+7. **HTML/CSS/JavaScript frontend**
+8. **RAG/KAG-ready ingestion and retrieval**
+9. **Conversation state / context flow**
+10. **Clean beginner-friendly implementation structure**
+
+---
+
+# CORE EXPECTATIONS
+
+The system must be:
+
+* enterprise-level
+* visually premium
+* modular
+* maintainable
+* practical for demo + future production
+* not over-engineered
+* easy to understand
+* easy to extend later
+* strong in UX
+* strong in flow control
+* realistic to implement
+
+---
+
+# SOLUTION DIRECTION
+
+This must be an **updated version from scratch**, not patchwork.
+
+The platform should solve common chatbot weaknesses by including:
+
+* context-aware service flow
+* no repetitive questioning
+* state/city + service collection logic
+* service context lock after selection
+* smart retrieval between structured and unstructured knowledge
+* role-based user/admin separation
+* clean auth flow
+* good API design
+* good observability
+* premium frontend experience
+
+But keep the system **balanced**, not unnecessarily complex.
+
+---
+
+# AUTHENTICATION REQUIREMENT
+
+Design a proper auth system with:
+
+* signup
+* login
+* OTP verification
+* JWT authentication
+* user/admin roles
+* secure password hashing
+* session expiry handling
+* protected routes
+* admin-only routes
+* frontend session-expired modal
+* logout flow
+* validation and error handling
+
+Also provide:
+
+* DB schema
+* request/response schemas
+* middleware/interceptor design
+* beginner-friendly explanation
+
+---
+
+# CHAT ASSISTANT REQUIREMENT
+
+Design a citizen chat assistant with:
+
+* session-based conversation
+* location flow
+* service selection flow
+* context lock after choosing Passport or Driving Licence
+* no repeated asking
+* clean structured answers
+* quick-reply options
+* next-step suggestions
+* follow-up handling
+* support for text
+* optional voice input
+* optional streaming if useful
+
+The assistant should feel:
+
+* guided
+* human
+* clear
+* safe
+* structured
+* citizen-friendly
+
+---
+
+# ADMIN PANEL REQUIREMENT
+
+Design an enterprise admin panel with:
+
+* admin login
+* dashboard cards
+* upload files
+* ingestion status
+* cache stats
+* retrieval stats
+* system health
+* knowledge refresh/rebuild
+* purge sessions
+* clear cache
+* model usage view
+* traces/log summary
+* content management area
+
+The admin panel should feel useful and premium.
+
+---
+
+# RAG / KAG REQUIREMENT
+
+Use retrieval practically.
+
+## KAG / structured knowledge should handle:
+
+* state / district / office hierarchy
+* office metadata
+* portal links
+* fees
+* eligibility
+* structured steps
+* structured rules
+
+## RAG / unstructured retrieval should handle:
+
+* FAQs
+* guideline PDFs
+* checklists
+* document lists
+* policies
+* uploaded files
+* general supporting content
+
+Also include:
+
+* smart retrieval router
+* KAG / RAG / BOTH / NONE modes
+* metadata-aware retrieval
+* state-aware filtering
+* admin upload ingestion flow
+* clean separation between structured and unstructured data
+
+---
+
+# FRONTEND REQUIREMENT
+
+Frontend must use only:
+
+* HTML
+* CSS
+* JavaScript
+
+No React unless absolutely necessary.
+Prefer clean vanilla JS SPA approach.
+
+---
+
+# UI / UX STYLE REQUIREMENT
+
+The UI must be **enterprise high level** and premium.
+
+## Style:
+
+* Glassmorphism
+* Smooth animation
+* Gradient lighting
+* Frosted glass panels
+* Blur effects
+* Soft glow accents
+* Refined hover/focus interactions
+* Premium dashboard styling
+* Clean responsive layout
+* Elegant typography
+* Animated cards
+* Shimmer/loading states
+* Beautiful chat bubbles/cards
+* Nice modals and toasts
+* Typing/streaming animation
+
+The UI should feel like a polished enterprise AI product.
+
+---
+
+# UX SCREENS TO DESIGN
+
+Include UX design for:
+
+* Login page
+* Signup page
+* OTP verification page/modal
+* Chat assistant page
+* Empty welcome state
+* Service selection cards
+* State/city collection flow
+* Voice button
+* Admin dashboard
+* Upload panel
+* Session-expired modal
+* Error state banners
+* Toast notifications
+* Logout flow
+
+Also explain motion behavior:
+
+* hover
+* focus
+* message appearance
+* card transitions
+* modal transitions
+* loading shimmer
+* button interactions
+
+---
+
+# BACKEND REQUIREMENT
+
+Use **Python + FastAPI**.
+
+Design backend with clean beginner-friendly modular architecture such as:
+
+* routers
+* auth
+* services
+* conversation manager
+* ai/model layer
+* retrieval layer
+* ingestion layer
+* database
+* schemas
+* middleware
+* utils
+* config
+
+Avoid confusing structure.
+
+Make it easy to understand.
+
+---
+
+# STORAGE / DATABASE REQUIREMENT
+
+Choose practical storage and justify it clearly for demo and future production.
+
+Possible areas:
+
+* auth/user DB
+* session metadata
+* vector DB
+* structured knowledge storage
+* uploaded file storage
+* cache
+
+Explain what should be used in:
+
+* demo version
+* production version
+
+---
+
+# MUST DELIVER IN RESPONSE
+
+I want your answer to include these exact sections:
+
+## 1. Problem understanding
+
+Explain what real users need in this citizen-service assistant.
+
+## 2. Best model suite from the provided list
+
+Choose the best models from the list and justify each choice.
+
+## 3. Final recommended AI strategy
+
+Explain how the chosen models work together.
+
+## 4. Updated solution vision
+
+Describe the full platform from scratch.
+
+## 5. Why this architecture
+
+Explain why this design is better than a normal chatbot.
+
+## 6. High-level architecture
+
+Provide full HLD.
+
+## 7. Low-level architecture
+
+Provide LLD with module responsibilities.
+
+## 8. Authentication architecture
+
+Explain full auth design.
+
+## 9. Conversation architecture
+
+Explain the service flow / FSM / state logic.
+
+## 10. Retrieval architecture
+
+Explain KAG, RAG, router, ingestion, and retrieval flow.
+
+## 11. Admin panel architecture
+
+Explain modules and user flows.
+
+## 12. UI/UX design system
+
+Explain glassmorphism, colors, spacing, motion, layout principles.
+
+## 13. Beginner-friendly folder structure
+
+Give a very clear project folder structure.
+
+## 14. Backend file-by-file explanation
+
+Explain every main backend file simply.
+
+## 15. Frontend file-by-file explanation
+
+Explain every main frontend file simply.
+
+## 16. API design
+
+List major endpoints with purpose.
+
+## 17. End-to-end data flows
+
+Explain:
+
+* signup flow
+* login flow
+* chat flow
+* admin upload flow
+* retrieval flow
+* token expiry flow
+
+## 18. Security and observability
+
+Include:
+
+* JWT
+* RBAC
+* validation
+* sanitization
+* logging
+* telemetry
+* rate limiting idea
+* audit/tracing
+
+## 19. Performance and cost strategy
+
+Explain:
+
+* model efficiency
+* caching
+* retrieval limits
+* fallback logic
+* latency control
+* why heavy models are used rarely
+
+## 20. Step-by-step implementation plan
+
+Give a beginner-friendly build plan from empty folder to working app.
+
+## 21. Final recommended stack
+
+Give final stack choices and reasons.
+
+---
+
+# VERY IMPORTANT OUTPUT RULES
+
+1. Do **not** recommend any model outside the provided list.
+2. Do **not** over-engineer the model orchestration.
+3. Do **not** create unnecessary multi-agent complexity.
+4. Do **not** use weak UI suggestions.
+5. Do **not** produce shallow folder structure.
+6. Do **not** make the architecture too abstract for a beginner.
+7. Keep naming clean and understandable.
+8. Give practical tradeoffs honestly.
+9. Prefer maintainability, clarity, and premium UX.
+10. Make the solution directly useful for implementation.
+
+---
+
+# PRACTICAL MODEL GUIDANCE TO CONSIDER
+
+While choosing models, think carefully about this balance:
+
+* `gpt-4o-mini` may be better for fast routing/classification/simple answers
+* `gpt-4o` may be better as primary high-quality generation model
+* `DeepSeek-R1` may be better only for hard reasoning, not every request
+* `DeepSeek-V3-0324` may be considered if useful as an alternative strong model
+* `text-embedding-3-large` is likely for embeddings
+* `whisper` is for speech transcription
+* `gpt-35-turbo` may be used only if justified, otherwise explain why not
+
+But do not blindly accept this. Analyze and decide properly.
+
+---
+
+# FINAL INSTRUCTION
+
+Give me the **best updated solution from scratch** for this platform with:
+
+* best model suite from the provided list
+* easy folder structure
+* auth
+* chat
+* admin panel
+* enterprise UI
+* glassmorphism animations
+* FastAPI backend
+* HTML/CSS/JS frontend
+* practical RAG/KAG
+* smart multi-model design
+* beginner-friendly implementation direction
+
+The output must be detailed, clean, structured, and directly useful for execution.
+
+My own recommendation from your listed models would be:
+
+* **Primary answer model:** `azure/genailab-maas-gpt-4o`
+* **Fast router / lightweight tasks:** `azure/genailab-maas-gpt-4o-mini`
+* **Reasoning fallback only for hard cases:** `azure_ai/genailab-maas-DeepSeek-R1`
+* **Embeddings:** `azure/genailab-maas-text-embedding-3-large`
+* **Voice transcription:** `azure/genailab-maas-whisper`
+
+Why this is the best balanced suite:
+
+* **GPT-4o** gives stronger final user-facing quality for multilingual, procedural, citizen-service answers.
+* **GPT-4o-mini** is ideal for cheap and fast classification, routing, short confirmations, and simple responses.
+* **DeepSeek-R1** should be used rarely, only when the query is truly complex, ambiguous, or needs deeper reasoning.
+* **text-embedding-3-large** is the correct retrieval model in your list.
+* **Whisper** is the right speech choice if you keep voice input.
+
+I would **not** make `gpt-35-turbo` the core model here, because this project needs better instruction-following and cleaner multilingual/procedural responses.
+I would also **not** use `DeepSeek-R1` as the default model, because it will make the system heavier, slower, and harder to manage.
+I would treat `DeepSeek-V3-0324` as optional backup experimentation, not the main default stack, unless Claude finds a very specific reason to use it.
+
+A beginner-friendly folder shape I’d push Claude toward is this:
+
+```text
+seva-ai/
+│
+├── backend/
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   ├── routers/
+│   │   ├── services/
+│   │   ├── ai/
+│   │   ├── retrieval/
+│   │   ├── auth/
+│   │   ├── middleware/
+│   │   └── utils/
+│   ├── uploads/
+│   ├── requirements.txt
+│   └── .env
+│
+├── frontend/
+│   ├── index.html
+│   ├── admin.html
+│   ├── auth.html
+│   ├── css/
+│   ├── js/
+│   └── assets/
+│
+└── README.md
+```
+
+This is much easier to understand than a deeply nested enterprise structure while still staying clean.
