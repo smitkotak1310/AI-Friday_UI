@@ -1,0 +1,1943 @@
+# PRODUCT REQUIREMENTS DOCUMENT (PRD)
+
+================================================================================
+  RetailGenie AI — Intelligent Retail Customer Service Conversational Agent
+  For: AI Hackathon Submission
+  Version: 1.0 | Confidential
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1.  Executive Summary
+2.  Product Vision & Goals
+3.  Target Users
+4.  System Architecture Overview
+5.  Tech Stack & Infrastructure
+6.  Data Model & Schema
+7.  Synthetic Dataset Generation
+8.  Module 1: Product Catalog Management & Data Ingestion
+9.  Module 2: Intent Recognition & Entity Extraction Engine
+10. Module 3: Conversational AI Agent (RAG + LLM)
+11. Module 4: Product Search & Retrieval Engine
+12. Module 5: AI Chat Widget Interface
+13. Module 6: Retail Knowledge Base (VectorDB)
+14. Module 7: Live Catalog Sync Engine
+15. Module 8: Escalation & Handoff System
+16. Module 9: Analytics & Performance Dashboard
+17. Module 10: Automated Response Quality System
+18. Module 11: Self-Learning & Catalog-Aware Adaptation
+19. Frontend Dashboard Design
+20. Backend API Specification
+21. Demonstration Scenarios
+22. Demo Usage Guide
+23. Evaluation Criteria Alignment
+24. Directory Structure
+25. Environment Variables & Configuration
+26. Implementation Sequence (Build Order)
+
+
+================================================================================
+1. EXECUTIVE SUMMARY
+================================================================================
+
+RetailGenie AI is an end-to-end intelligent conversational agent platform
+built specifically for retail customer service teams handling high volumes
+of repetitive product queries. The system ingests structured product catalog
+data (JSON/CSV), understands natural language customer questions using intent
+recognition and entity extraction, and delivers accurate, context-aware
+responses powered by Azure-hosted LLMs through a sleek React chat widget.
+
+The platform features a conversational AI agent that handles queries about
+product details, availability, pricing, and return policies — replacing
+rigid FAQ systems and rule-based chatbots with a genuinely intelligent
+assistant. It includes live catalog synchronization, sentiment detection,
+multi-turn conversation memory, automated escalation to human agents, and
+a self-learning feedback loop — all connected to a ChromaDB vector knowledge
+base via Haystack RAG pipelines.
+
+The system handles catalog updates dynamically, supports hundreds to
+thousands of SKUs, and demonstrates dramatically reduced agent workload
+and improved customer satisfaction. Two pre-built synthetic demo scenarios
+(Electronics Store + Fashion Retail) showcase diverse query handling
+capabilities out of the box.
+
+
+================================================================================
+2. PRODUCT VISION & GOALS
+================================================================================
+
+PRIMARY GOAL:
+  Reduce human agent workload by 60%+ by auto-resolving repetitive product
+  queries with accurate, context-aware conversational AI responses in
+  under 3 seconds.
+
+SECONDARY GOALS:
+  - Achieve >90% query resolution accuracy across product detail, pricing,
+    availability, and return policy intents
+  - Provide consistent brand messaging across all customer interactions
+  - Handle live catalog updates without manual FAQ reconfiguration
+  - Escalate complex or emotionally charged queries to human agents seamlessly
+  - Build a continuously improving system via agent and customer feedback loops
+  - Demonstrate production-grade GenAI pipeline for hackathon judges
+
+SUCCESS METRICS:
+  - Query resolution accuracy > 90% on test scenarios
+  - Average AI response time < 3 seconds
+  - Chat widget loads in < 2 seconds
+  - Customer satisfaction (CSAT) score > 4.2/5.0
+  - Escalation rate < 15% (queries requiring human intervention)
+  - Catalog sync latency < 5 minutes for product updates
+
+
+================================================================================
+3. TARGET USERS
+================================================================================
+
+PRIMARY: Retail Customer Service Agent
+  - Monitors AI chat conversations and intervenes when escalated
+  - Reviews AI-generated suggested responses for complex queries
+  - Provides feedback on AI answer quality for continuous improvement
+  - Handles escalated queries that AI cannot resolve
+
+SECONDARY: Retail Customer (End User)
+  - Asks natural language questions about products
+  - Receives instant, accurate answers about pricing, availability,
+    specifications, and return policies
+  - Gets product recommendations based on their query context
+  - Can seamlessly request human agent transfer at any time
+
+TERTIARY: Retail Operations / Catalog Manager
+  - Uploads and manages product catalog data
+  - Reviews AI performance analytics and resolution rates
+  - Monitors customer sentiment trends and common pain points
+  - Configures return policies, promotional rules, and escalation rules
+
+
+================================================================================
+4. SYSTEM ARCHITECTURE OVERVIEW
+================================================================================
+
+[React Frontend] <---> [FastAPI Backend] <---> [SQLite DB]
+  (Chat Widget)              |
+                    +---------+---------+
+                    |                   |
+            [Intent/Entity       [Haystack RAG]
+             Engine]            [ChromaDB VectorDB]
+            [Product Search]    [Azure LLM API]
+            [Sentiment Analysis]
+                    |
+            [Catalog Sync]
+            [Escalation Service]
+            [Self-Learning]
+
+DATA FLOW:
+  1. Customer types a natural language query in chat widget
+  2. FastAPI receives message → runs intent classification + entity extraction
+  3. Intent determines routing:
+     a. Product Info → Product Search engine queries SQLite catalog
+     b. Pricing → Direct catalog lookup + promotion check
+     c. Availability → Stock status lookup per SKU
+     d. Return Policy → Policy document retrieval from ChromaDB
+     e. General → RAG pipeline retrieves context + LLM generates response
+  4. Haystack RAG retrieves relevant knowledge from ChromaDB
+  5. Azure LLM generates natural language response with product context
+  6. Sentiment analysis runs on customer message (frustration detection)
+  7. If sentiment negative + unresolved → trigger escalation
+  8. Response rendered in chat widget with product cards when applicable
+  9. Conversation stored in SQLite for analytics and self-learning
+  10. Catalog manager uploads new CSV → products synced → embeddings updated
+
+
+================================================================================
+5. TECH STACK & INFRASTRUCTURE
+================================================================================
+
+FRONTEND:
+  - React 18 (Vite)
+  - Tailwind CSS (utility-first styling)
+  - Lucide React (icons)
+  - Framer Motion (animations)
+  - Axios (HTTP client)
+  - React Markdown (rendering AI responses with formatting)
+  - Recharts (analytics charts)
+
+BACKEND:
+  - Python 3.11
+  - FastAPI (async REST API)
+  - Uvicorn (ASGI server)
+  - Pandas (data processing)
+  - SQLAlchemy + SQLite (persistence)
+  - Pydantic v2 (data validation)
+
+AI / ML:
+  - Haystack 2.x (RAG pipeline orchestration)
+  - ChromaDB (vector store for knowledge base)
+  - Scikit-learn (intent classification, entity extraction)
+  - Spacy or custom NER (named entity recognition)
+  - TextBlob / VADER (sentiment analysis)
+  - Azure OpenAI via langchain-openai (LLM + embeddings)
+
+LLM MODELS (Azure GenAI Lab):
+  - Primary LLM:    azure/genailab-maas-gpt-4o
+  - Fallback LLM:   azure/genailab-maas-gpt-4o-mini
+  - Embeddings:     azure/genailab-maas-text-embedding-3-large
+
+INFRASTRUCTURE:
+  - SQLite (local, zero-config DB)
+  - ChromaDB (local persistent vector store)
+  - FastAPI CORS middleware (React <-> API)
+  - python-dotenv (environment management)
+  - Websocket support for real-time chat (optional)
+
+PYTHON PACKAGES (requirements.txt):
+  fastapi==0.111.0
+  uvicorn[standard]==0.29.0
+  pandas==2.2.2
+  sqlalchemy==2.0.30
+  pydantic==2.7.1
+  python-multipart==0.0.9
+  scikit-learn==1.4.2
+  spacy==3.7.4
+  textblob==0.18.0
+  haystack-ai==2.2.1
+  chroma-haystack==1.0.0
+  chromadb==0.5.0
+  langchain-openai==0.1.8
+  httpx==0.27.0
+  python-dotenv==1.0.1
+  numpy==1.26.4
+  plotly==5.22.0
+  rapidfuzz==3.9.0
+
+
+================================================================================
+6. DATA MODEL & SCHEMA
+================================================================================
+
+--- SQLite Tables ---
+
+TABLE: catalog_uploads
+  id              INTEGER PRIMARY KEY AUTOINCREMENT
+  upload_id       TEXT UNIQUE (UUID)
+  filename        TEXT
+  uploaded_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  row_count       INTEGER
+  status          TEXT  (processing | ready | failed)
+
+TABLE: products
+  id              INTEGER PRIMARY KEY AUTOINCREMENT
+  upload_id       TEXT REFERENCES catalog_uploads(upload_id)
+  sku_id          TEXT
+  product_name    TEXT
+  description     TEXT
+  category        TEXT
+  subcategory     TEXT
+  brand           TEXT
+  price           FLOAT
+  sale_price      FLOAT (NULL if no sale)
+  currency        TEXT DEFAULT "USD"
+  availability    TEXT (in_stock | low_stock | out_of_stock | pre_order)
+  stock_quantity  INTEGER
+  specifications  TEXT  (JSON: {"color":"red","size":"M","material":"cotton"})
+  images          TEXT  (JSON: array of image URLs)
+  product_url     TEXT
+  return_policy   TEXT  (e.g., "30-day returns", "no returns on sale items")
+  shipping_info   TEXT
+  rating          FLOAT
+  review_count    INTEGER
+  tags            TEXT  (JSON: array of searchable tags)
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+TABLE: conversations
+  id              INTEGER PRIMARY KEY AUTOINCREMENT
+  session_id      TEXT UNIQUE (UUID)
+  customer_name   TEXT DEFAULT "Anonymous"
+  channel         TEXT (web_chat | mobile | api)
+  started_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ended_at        TIMESTAMP
+  status          TEXT (active | resolved | escalated | abandoned)
+  csat_score      INTEGER (1-5, NULL if not rated)
+  resolution_type TEXT (ai_resolved | agent_resolved | abandoned)
+  message_count   INTEGER DEFAULT 0
+
+TABLE: messages
+  id              INTEGER PRIMARY KEY AUTOINCREMENT
+  session_id      TEXT REFERENCES conversations(session_id)
+  role            TEXT  (user | assistant | system)
+  content         TEXT
+  intent          TEXT  (detected intent for user messages)
+  entities        TEXT  (JSON: extracted entities)
+  sentiment       TEXT  (positive | neutral | negative | frustrated)
+  confidence      FLOAT (0-1, intent confidence)
+  response_time_ms INTEGER
+  sources         TEXT  (JSON: product names/docs used for response)
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+TABLE: knowledge_docs
+  id              INTEGER PRIMARY KEY AUTOINCREMENT
+  doc_id          TEXT UNIQUE
+  title           TEXT
+  content         TEXT
+  category        TEXT  (return_policy | shipping | warranty | brand_info |
+                        faq | promotion_rules)
+  chroma_synced   BOOLEAN DEFAULT FALSE
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+TABLE: feedback
+  id              INTEGER PRIMARY KEY AUTOINCREMENT
+  message_id      INTEGER REFERENCES messages(id)
+  session_id      TEXT
+  agent_rating    INTEGER  (1-5)
+  was_helpful     BOOLEAN
+  was_accurate    BOOLEAN
+  agent_notes     TEXT
+  corrected_answer TEXT
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+TABLE: escalations
+  id              INTEGER PRIMARY KEY AUTOINCREMENT
+  session_id      TEXT REFERENCES conversations(session_id)
+  trigger_type    TEXT (sentiment_frustration | repeated_query | low_confidence |
+                       customer_request | complex_query)
+  trigger_message TEXT
+  assigned_agent  TEXT
+  status          TEXT (pending | accepted | resolved)
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+TABLE: analytics_daily
+  id              INTEGER PRIMARY KEY AUTOINCREMENT
+  date            DATE
+  total_queries   INTEGER
+  ai_resolved     INTEGER
+  escalated       INTEGER
+  avg_response_ms INTEGER
+  avg_confidence  FLOAT
+  csat_avg        FLOAT
+  top_intent      TEXT
+  top_product     TEXT
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+TABLE: catalog_embeddings_log
+  id              INTEGER PRIMARY KEY AUTOINCREMENT
+  product_id      INTEGER REFERENCES products(id)
+  embed_status    TEXT (pending | embedded | failed)
+  embedded_at     TIMESTAMP
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+
+================================================================================
+7. SYNTHETIC DATASET GENERATION
+================================================================================
+
+BUILD A SCRIPT: backend/utils/generate_synthetic_data.py
+
+The script generates TWO demo scenarios with product catalogs AND
+synthetic customer queries:
+
+--- PRODUCT CATALOGS ---
+
+SCENARIO A: catalog_electronics.csv
+  - 150 products across categories:
+    * Smartphones (20): iPhone 15 Pro, Samsung Galaxy S24, Google Pixel 8, etc.
+    * Laptops (20): MacBook Pro, Dell XPS, Lenovo ThinkPad, etc.
+    * Headphones (15): AirPods Pro, Sony WH-1000XM5, Bose QC Ultra, etc.
+    * Tablets (10): iPad Pro, Samsung Tab S9, etc.
+    * Smart Watches (10): Apple Watch Ultra, Galaxy Watch 6, etc.
+    * Accessories (30): Cases, chargers, cables, screen protectors
+    * TVs (15): Samsung OLED, LG C3, Sony Bravia, etc.
+    * Gaming (15): PS5, Xbox Series X, Nintendo Switch, controllers
+    * Cameras (15): Canon R6, Sony A7IV, GoPro Hero 12, etc.
+  - Price range: $9.99 (cable) to $3,499.99 (MacBook Pro M3 Max)
+  - Availability mix: 60% in_stock, 15% low_stock, 15% out_of_stock, 10% pre_order
+  - Return policies: "30-day returns", "14-day returns", "No returns on opened electronics",
+    "Extended holiday returns until Jan 31"
+  - Sale prices on ~25% of items
+  - Rich specifications JSON for each category
+
+SCENARIO B: catalog_fashion.csv
+  - 120 products across categories:
+    * Women's Clothing (30): dresses, tops, jeans, jackets
+    * Men's Clothing (25): shirts, trousers, suits, casual wear
+    * Footwear (20): sneakers, heels, boots, sandals
+    * Accessories (20): bags, belts, watches, sunglasses
+    * Kids' Clothing (15): outfits, school uniforms, seasonal wear
+    * Activewear (10): yoga pants, running shoes, sports bras
+  - Size variants handled via specifications JSON
+  - Color variants as separate rows or tagged
+  - Return policies: "30-day returns with tags", "No returns on underwear",
+    "Exchange only on sale items", "Free returns within 15 days"
+  - Seasonal tags: Spring, Summer, Fall, Winter
+
+CSV COLUMN HEADERS (exact):
+  sku_id,product_name,description,category,subcategory,brand,price,
+  sale_price,currency,availability,stock_quantity,specifications,
+  images,product_url,return_policy,shipping_info,rating,review_count,tags
+
+--- SYNTHETIC QUERY GENERATION ---
+
+SCENARIO A QUERIES (50 queries for Electronics):
+  Product Info:
+    - "What are the specs of the iPhone 15 Pro?"
+    - "Tell me about the Samsung Galaxy S24 Ultra"
+    - "What's the difference between MacBook Air and MacBook Pro?"
+    - "Does the Sony WH-1000XM5 have noise cancellation?"
+    - "What colors does the Google Pixel 8 come in?"
+  
+  Pricing:
+    - "How much is the iPad Pro 12.9 inch?"
+    - "Is there a sale on AirPods Pro?"
+    - "What's the price of the PS5?"
+    - "Do you have any discounts on laptops?"
+    - "Compare prices of Galaxy S24 vs iPhone 15"
+  
+  Availability:
+    - "Is the MacBook Pro M3 in stock?"
+    - "When will the PlayStation 5 be back in stock?"
+    - "Do you have the Canon EOS R6 available?"
+    - "Can I pre-order the new Samsung Galaxy?"
+    - "Is the Bose QC Ultra available for immediate shipping?"
+  
+  Returns:
+    - "What's your return policy for electronics?"
+    - "Can I return headphones if I've opened them?"
+    - "How many days do I have to return a laptop?"
+    - "Do you accept returns on sale items?"
+    - "What's the process to return a defective product?"
+  
+  Complex / Multi-intent:
+    - "I want a laptop under $1500 with good battery life, what do you recommend?"
+    - "Looking for wireless earbuds that work with both iPhone and Android"
+    - "Is the iPhone 15 Pro available in blue and what's the return policy?"
+    - "What gaming console would you recommend for a 10-year-old?"
+    - "I need a camera for YouTube videos, budget around $2000"
+
+SCENARIO B QUERIES (50 queries for Fashion):
+  Similar pattern covering size questions, color availability,
+  outfit recommendations, return policies for clothing, etc.
+
+FILE LOCATION: backend/demo_data/
+
+GENERATED QUERY FORMAT (for testing):
+  JSON file with:
+    [
+      {
+        "query": "Is the iPhone 15 Pro in stock?",
+        "expected_intent": "availability",
+        "expected_entities": {"product_name": "iPhone 15 Pro"},
+        "expected_response_contains": ["in stock", "available"]
+      },
+      ...
+    ]
+
+
+================================================================================
+8. MODULE 1: PRODUCT CATALOG MANAGEMENT & DATA INGESTION
+================================================================================
+
+FRONTEND COMPONENT: src/pages/CatalogPage.jsx
+
+UI ELEMENTS:
+  - Large drag-and-drop zone (JSON or CSV accepted)
+  - File type restriction: .csv or .json
+  - Upload progress bar with row-by-row processing indicator
+  - Preview table showing first 10 products after upload
+  - Column validation check (green tick / red X per required field)
+  - "Index Products" button triggers embedding + search indexing
+  - Product count badges by category
+  - Recent uploads list with status
+  - "Sync Catalog" button to re-index after manual edits
+
+BACKEND ENDPOINT: POST /api/catalog/upload
+  - Accept: multipart/form-data (file field: "file")
+  - Parse CSV/JSON with pandas
+  - Validate required columns (return 422 if missing)
+  - Normalize product attributes (lowercase tags, standardize categories)
+  - Store all products in products table
+  - Trigger background task: index_products(upload_id)
+  - Return: { upload_id, product_count, status, validation_errors[] }
+
+BACKEND ENDPOINT: GET /api/catalog/products
+  - Query params: category, brand, availability, search_text, limit, offset
+  - Returns: paginated product list with filtering
+
+BACKEND ENDPOINT: GET /api/catalog/products/{sku_id}
+  - Returns: full product details including specifications, availability
+
+BACKEND ENDPOINT: PUT /api/catalog/products/{sku_id}
+  - Update single product (price, availability, stock)
+  - Re-embed if description changed
+  - Return: updated product object
+
+BACKEND ENDPOINT: DELETE /api/catalog/products/{sku_id}
+  - Soft-delete product (set availability to "discontinued")
+  - Return: confirmation
+
+BACKEND ENDPOINT: GET /api/catalog/stats
+  - Returns: total products, by category, by availability, price range
+
+VALIDATION RULES (run on upload):
+  - sku_id, product_name, price, availability, category are required
+  - price must be positive float
+  - availability must be one of: in_stock, low_stock, out_of_stock, pre_order
+  - stock_quantity must be non-negative integer
+  - specifications must be valid JSON string if present
+  - tags must be valid JSON array if present
+  - sale_price must be < price if present
+
+NORMALIZATION RULES:
+  - Product names: title case, trim whitespace
+  - Categories: standardized to predefined taxonomy
+  - Tags: lowercase, deduplicated
+  - Specifications: flatten nested JSON for search indexing
+  - Generate searchable_text: concatenation of name + description +
+    brand + category + tags for embedding
+
+
+================================================================================
+9. MODULE 2: INTENT RECOGNITION & ENTITY EXTRACTION ENGINE
+================================================================================
+
+FILE: backend/services/intent_entity_engine.py
+
+CLASS: IntentEntityEngine
+
+--- INTENT CLASSIFICATION ---
+
+INTENT TAXONOMY (6 primary intents):
+
+  1. PRODUCT_INFO
+     Triggers: "tell me about", "what is", "describe", "features of",
+               "specs", "details", "what does it have"
+     Sub-intents: specifications, features, comparison
+
+  2. PRICING
+     Triggers: "how much", "price", "cost", "discount", "sale",
+               "cheaper", "expensive", "deal", "offer"
+     Sub-intents: current_price, sale_check, price_comparison, budget_query
+
+  3. AVAILABILITY
+     Triggers: "in stock", "available", "when will", "back in stock",
+               "shipping", "delivery", "can I buy", "do you have"
+     Sub-intents: stock_check, restock_estimate, shipping_time, pre_order
+
+  4. RETURN_POLICY
+     Triggers: "return", "refund", "exchange", "send back", "warranty",
+               "defective", "broken", "policy"
+     Sub-intents: return_window, return_process, exchange_policy, refund_status
+
+  5. RECOMMENDATION
+     Triggers: "recommend", "suggest", "what should I", "best",
+               "looking for", "help me find", "compare", "alternative"
+     Sub-intents: product_recommendation, budget_recommendation,
+                  category_browse, gift_suggestion
+
+  6. GENERAL / OTHER
+     Triggers: anything not matching above
+     Sub-intents: greeting, complaint, compliment, account_help,
+                  order_status, store_info
+
+CLASSIFICATION METHOD:
+  PRIMARY: Rule-based keyword matching with fuzzy matching (rapidfuzz)
+    - Score each intent based on keyword presence and proximity
+    - Confidence = weighted keyword match score
+
+  SECONDARY: Scikit-learn TF-IDF + Logistic Regression classifier
+    - Pre-trained on synthetic query dataset
+    - Features: TF-IDF vectors of query text
+    - Output: intent label + probability distribution
+    - Persisted as: backend/models/intent_classifier.pkl
+
+  ENSEMBLE: Weighted combination
+    - If rule-based confidence > 0.8: use rule-based (fast path)
+    - Else: use ML classifier result
+    - If ML confidence < 0.5: classify as "GENERAL" → LLM handles
+
+--- ENTITY EXTRACTION ---
+
+ENTITIES EXTRACTED:
+  - product_name: Specific product mentioned ("iPhone 15 Pro")
+  - brand: Brand name ("Apple", "Samsung", "Nike")
+  - category: Product category ("laptops", "headphones", "dresses")
+  - price_mentioned: Numeric price value ("under $500")
+  - size: Size specification ("size 10", "XL", "42mm")
+  - color: Color mentioned ("blue", "black", "rose gold")
+  - sku_id: Direct SKU reference if given
+  - attribute: Specific feature ("battery life", "noise cancellation")
+
+EXTRACTION METHOD:
+  STEP 1: Regex patterns for structured entities
+    - Price: r'\$[\d,]+(\.\d{2})?' or r'under \$?[\d,]+'
+    - Size: r'\b(XS|S|M|L|XL|XXL|\d+mm|\d+inch|\d+\s*inch)\b'
+    - Color: lookup against predefined color list (50+ colors)
+    - SKU: r'\b[A-Z]{2,4}-[\d]{3,6}\b'
+
+  STEP 2: Fuzzy matching against product catalog
+    - Extract noun phrases from query
+    - Match against product_name, brand, category columns using rapidfuzz
+    - Threshold: similarity > 0.75 for product match
+    - Return top 3 matches with confidence scores
+
+  STEP 3: SpaCy NER for additional entities
+    - PERSON, ORG (brand names), CARDINAL (numbers)
+    - Custom-trained entity ruler for retail domain
+
+OUTPUT STRUCTURE (per message):
+  {
+    "intent": "PRICING",
+    "intent_confidence": 0.92,
+    "sub_intent": "sale_check",
+    "entities": {
+      "product_name": {"value": "iPhone 15 Pro", "confidence": 0.95},
+      "brand": {"value": "Apple", "confidence": 0.98}
+    },
+    "matched_products": [
+      {"sku_id": "ELEC-IP15P-128", "product_name": "iPhone 15 Pro 128GB",
+       "similarity": 0.97}
+    ],
+    "requires_clarification": false
+  }
+
+
+================================================================================
+10. MODULE 3: CONVERSATIONAL AI AGENT (RAG + LLM)
+================================================================================
+
+FILE: backend/services/conversational_agent.py
+
+HAYSTACK PIPELINE: ConversationalPipeline
+
+COMPONENTS:
+  1. ChromaDocumentStore (persistent, path: ./chroma_store)
+  2. AzureOpenAITextEmbedder (model: text-embedding-3-large)
+     - Embeds the customer query + conversation context
+  3. ChromaEmbeddingRetriever (top_k=5)
+     - Retrieves relevant product descriptions and knowledge docs
+  4. PromptBuilder
+     - Builds prompt with query + product data + retrieved context
+     - + conversation history for multi-turn awareness
+  5. AzureOpenAIChatGenerator (model: gpt-4o via genailab endpoint)
+     - Generates conversational response
+
+AZURE CONNECTION:
+  from langchain_openai import ChatOpenAI
+  import httpx
+  client = httpx.Client(verify=False)
+  llm = ChatOpenAI(
+      base_url="https://genailab.tcs.in",
+      model="azure/genailab-maas-gpt-4o",
+      api_key=os.getenv("AZURE_API_KEY"),
+      http_client=client
+  )
+
+PROMPT TEMPLATES (vary by intent):
+
+--- PRODUCT INFO PROMPT ---
+  """
+  You are a friendly, knowledgeable retail assistant for {store_name}.
+  
+  CUSTOMER QUERY: {customer_query}
+  DETECTED INTENT: Product Information
+  
+  MATCHED PRODUCT(S):
+  {product_details_json}
+  
+  RELEVANT CONTEXT (from knowledge base):
+  {retrieved_context}
+  
+  CONVERSATION HISTORY:
+  {conversation_history}
+  
+  Guidelines:
+  - Answer based ONLY on the product data provided
+  - Highlight key specifications that match what the customer asked
+  - If comparing products, present a clear side-by-side summary
+  - If product not found, say so honestly and suggest similar products
+  - Keep response concise (under 150 words)
+  - End with: "Would you like to know anything else about this product?"
+  - Use a warm, helpful tone
+  """
+
+--- PRICING PROMPT ---
+  """
+  You are a friendly retail assistant for {store_name}.
+  
+  CUSTOMER QUERY: {customer_query}
+  DETECTED INTENT: Pricing
+  
+  MATCHED PRODUCT(S):
+  {product_details_json}
+  
+  Guidelines:
+  - State the current price clearly
+  - If there's a sale price, show both original and sale price with
+    savings percentage
+  - If customer asked about budget options, list alternatives within range
+  - If product not found in catalog, say so and suggest alternatives
+  - Keep response concise (under 100 words)
+  """
+
+--- AVAILABILITY PROMPT ---
+  """
+  You are a friendly retail assistant for {store_name}.
+  
+  CUSTOMER QUERY: {customer_query}
+  DETECTED INTENT: Availability
+  
+  MATCHED PRODUCT(S):
+  {product_details_json}
+  
+  Guidelines:
+  - State stock status clearly: "In Stock", "Low Stock (X left)",
+    "Out of Stock", or "Available for Pre-order"
+  - If out of stock, mention expected restock if data available
+  - Include estimated shipping time if available
+  - If product not found, say so honestly
+  - Keep response concise (under 100 words)
+  """
+
+--- RETURN POLICY PROMPT ---
+  """
+  You are a friendly retail assistant for {store_name}.
+  
+  CUSTOMER QUERY: {customer_query}
+  DETECTED INTENT: Return Policy
+  
+  MATCHED PRODUCT(S):
+  {product_details_json}
+  
+  RELEVANT POLICY DOCUMENTS:
+  {retrieved_context}
+  
+  Guidelines:
+  - Cite the specific return policy for the mentioned product
+  - If no specific product, state the general return policy
+  - Mention any exceptions (sale items, opened electronics, underwear)
+  - Provide clear steps for initiating a return
+  - Keep response concise (under 120 words)
+  """
+
+--- RECOMMENDATION PROMPT ---
+  """
+  You are a knowledgeable retail assistant for {store_name}.
+  
+  CUSTOMER QUERY: {customer_query}
+  DETECTED INTENT: Product Recommendation
+  
+  AVAILABLE PRODUCTS (matching criteria):
+  {product_details_json}
+  
+  RELEVANT CONTEXT:
+  {retrieved_context}
+  
+  Guidelines:
+  - Recommend 2-3 products that best match the customer's needs
+  - Include key differentiators for each recommendation
+  - Mention price for each recommendation
+  - If budget specified, stay within range
+  - Present as: "Based on what you're looking for, I'd recommend..."
+  - End with: "Would you like more details on any of these?"
+  - Keep response concise (under 200 words)
+  """
+
+RESPONSE ENRICHMENT:
+  - When product data is available, append a structured product card
+    (rendered as rich component in frontend)
+  - Product card includes: image, name, price, availability badge,
+    "View Product" link
+  - For recommendations: render 2-3 product cards side by side
+
+FALLBACK BEHAVIOR:
+  - If intent confidence < 0.5: use GENERAL prompt with full LLM reasoning
+  - If product not found in catalog: "I couldn't find that specific product
+    in our catalog. Could you check the name or try describing what you're
+    looking for?"
+  - If Azure LLM fails: use template-based fallback response
+  - If 3 consecutive low-confidence responses: trigger escalation
+
+
+================================================================================
+11. MODULE 4: PRODUCT SEARCH & RETRIEVAL ENGINE
+================================================================================
+
+FILE: backend/services/product_search.py
+
+CLASS: ProductSearchEngine
+
+SEARCH METHODS (priority order):
+
+METHOD 1: Exact SKU Lookup
+  - If query contains SKU pattern → direct database lookup
+  - O(1) lookup, highest precision
+
+METHOD 2: Fuzzy Name Match (rapidfuzz)
+  - Compare query noun phrases against product_name column
+  - Use token_sort_ratio for word-order independence
+  - Threshold: score > 75
+  - Return top 5 matches ranked by similarity
+
+METHOD 3: Full-Text Search (SQLite FTS5)
+  - Create FTS5 virtual table on:
+    (product_name, description, brand, category, tags)
+  - Use MATCH operator with query terms
+  - Supports phrase matching and boolean operators
+
+METHOD 4: Semantic Vector Search (ChromaDB)
+  - Embed product descriptions during catalog indexing
+  - Embed customer query
+  - Cosine similarity search against ChromaDB
+  - Return top 5 results with similarity scores
+  - Best for vague/descriptive queries:
+    "I need something to listen to music while running"
+
+COMBINED SCORING:
+  final_score = (
+      fuzzy_score * 0.30 +
+      fts_score * 0.30 +
+      vector_similarity * 0.40
+  )
+  Products ranked by final_score, top 5 returned
+
+SEARCH PIPELINE (search_products method):
+  1. Extract search terms from query (strip stopwords)
+  2. Run all 4 methods in parallel
+  3. Merge and deduplicate results
+  4. Score and rank
+  5. Apply filters from entities (category, brand, price range)
+  6. Return structured results with match explanations
+
+OUTPUT:
+  [
+    {
+      "sku_id": "ELEC-IP15P-128",
+      "product_name": "iPhone 15 Pro 128GB Natural Titanium",
+      "price": 999.00,
+      "sale_price": null,
+      "availability": "in_stock",
+      "match_score": 0.97,
+      "match_method": "fuzzy_name",
+      "match_explanation": "Exact product name match"
+    },
+    ...
+  ]
+
+CATALOG INDEXING (index_products method):
+  Triggered after catalog upload completes:
+  1. For each product, create searchable_text:
+     "product_name brand category description tags"
+  2. Embed searchable_text using Azure text-embedding-3-large
+  3. Store embeddings in ChromaDB collection "retail_products"
+  4. Populate SQLite FTS5 virtual table
+  5. Update catalog_embeddings_log status
+
+SIMILARITY SEARCH FOR RECOMMENDATIONS:
+  Given a product, find similar products by:
+  1. Same category + similar price range (±20%)
+  2. Vector similarity on product descriptions
+  3. Filter by availability = in_stock
+  4. Return top 5 similar products
+
+
+================================================================================
+12. MODULE 5: AI CHAT WIDGET INTERFACE
+================================================================================
+
+FILE: backend/api/chat.py
+FRONTEND: src/components/ChatWidget.jsx (embeddable widget)
+           src/pages/ChatPage.jsx (full-page chat)
+
+DESCRIPTION:
+  A beautiful, responsive chat interface that serves as the primary
+  customer interaction point. Supports both an embeddable widget
+  (bottom-right floating button) and a full-page chat view.
+
+BACKEND ENDPOINT: POST /api/chat/message
+  Request body:
+    {
+      "session_id": "string (optional, auto-generated if new)",
+      "message": "string",
+      "channel": "web_chat"
+    }
+  Response:
+    {
+      "session_id": "string",
+      "response": "string",
+      "intent": "string",
+      "entities": {},
+      "product_cards": [{}],
+      "confidence": float,
+      "suggestions": ["string"],
+      "escalation_triggered": boolean,
+      "response_time_ms": integer
+    }
+
+CHAT FLOW (backend processing):
+  1. Receive message → create/retrieve conversation session
+  2. Store user message in messages table
+  3. Run intent classification + entity extraction
+  4. Check escalation triggers:
+     a. Sentiment = frustrated AND 2+ negative messages
+     b. Same query asked 3+ times (unresolved)
+     c. Intent confidence < 0.3 for 3 consecutive messages
+     d. Customer explicitly says "talk to human" / "agent"
+  5. If escalation triggered → create escalation record, notify agent
+  6. If not escalated:
+     a. Run product search based on entities
+     b. Retrieve relevant knowledge from ChromaDB
+     c. Build prompt with intent-specific template
+     d. Call Azure LLM for response generation
+     e. Parse response + attach product cards if applicable
+     f. Generate 3 suggested follow-up questions
+  7. Store assistant message with intent, entities, sentiment
+  8. Return response to frontend
+
+WELCOME MESSAGE:
+  "Hi there! 👋 I'm your shopping assistant. I can help you with:
+  • Product details and specifications
+  • Pricing and current deals
+  • Stock availability and shipping
+  • Return and exchange policies
+  • Product recommendations
+
+  What can I help you find today?"
+
+SUGGESTED QUICK REPLIES (chips):
+  - "What's on sale today?"
+  - "Show me popular products"
+  - "What's your return policy?"
+  - "I need help finding a gift"
+
+PRODUCT CARD RENDERING:
+  When the AI response references specific products, render cards:
+  ┌─────────────────────────────────┐
+  │ [Product Image]                 │
+  │ iPhone 15 Pro 128GB            │
+  │ ⭐ 4.8 (2,340 reviews)         │
+  │ $999.00  ✅ In Stock           │
+  │ [View Product] [Add to Compare]│
+  └─────────────────────────────────┘
+
+MULTI-TURN CONVERSATION:
+  - Last 8 messages stored in conversation context
+  - System maintains entity state across turns:
+    "I asked about iPhone 15 Pro" → subsequent "Is it in stock?" resolves "it"
+  - Conversation history passed to LLM for coherent multi-turn dialogue
+
+FRONTEND FEATURES:
+  - Chat bubbles: user messages (right, Cola red), AI (left, white card)
+  - Typing indicator animation (3 bouncing dots)
+  - Timestamps on each message
+  - Copy button on AI responses
+  - Suggestion chips below AI response
+  - Product cards with images and "View" links
+  - "Talk to a human" button always visible
+  - CSAT rating widget at end of resolved conversation
+  - Mobile responsive (full-screen on mobile)
+  - Sound notification for agent messages (escalation mode)
+
+CHAT WIDGET (EMBEDDABLE):
+  - Floating button: bottom-right corner, Cola red with chat icon
+  - Unread message count badge
+  - Opens slide-up panel (400x600px)
+  - Minimizable to header bar
+  - Persistent across page navigation (session maintained)
+
+
+================================================================================
+13. MODULE 6: RETAIL KNOWLEDGE BASE (VectorDB)
+================================================================================
+
+FILE: backend/services/knowledge_base.py
+
+CHROMADB + HAYSTACK RAG SETUP:
+
+  from haystack_integrations.document_stores.chroma import ChromaDocumentStore
+  from haystack_integrations.components.retrievers.chroma import ChromaEmbeddingRetriever
+  from haystack.components.embedders import AzureOpenAITextEmbedder
+
+  document_store = ChromaDocumentStore(
+      collection_name="retail_knowledge_base",
+      persist_path="./chroma_store",
+      distance_function="cosine"
+  )
+
+PRE-LOADED KNOWLEDGE DOCUMENTS (seed on first startup):
+
+  DOC 1: "General Return Policy"
+    Most items can be returned within 30 days of purchase with original
+    receipt and packaging. Items must be in original condition. Refunds
+    are processed within 5-7 business days to the original payment method.
+    Sale items may be returned for store credit only. Final sale items
+    (clearance, intimate apparel, opened electronics) cannot be returned.
+    Defective items can be returned at any time with proof of purchase.
+
+  DOC 2: "Electronics Return Policy"
+    Electronics can be returned within 14 days of purchase. Items must be
+    unopened and in original packaging for full refund. Opened electronics
+    may be subject to a 15% restocking fee. Defective electronics are
+    covered by manufacturer warranty — contact manufacturer directly or
+    bring to store for assistance. Software and digital downloads are
+    non-refundable once activated.
+
+  DOC 3: "Shipping & Delivery Information"
+    Standard shipping: 5-7 business days (free over $50).
+    Express shipping: 2-3 business days ($12.99).
+    Same-day delivery: available in select metro areas ($19.99).
+    International shipping: 10-15 business days, rates vary.
+    Order tracking available via email confirmation link.
+    Signature required for orders over $200.
+
+  DOC 4: "Size Guide - Fashion"
+    Women's sizing follows US standard: XS(0-2), S(4-6), M(8-10),
+    L(12-14), XL(16-18). Men's: XS(32-34), S(36-38), M(40-42),
+    L(44-46), XL(48-50). Shoe sizes follow US standard.
+    We recommend sizing up for athletic wear. Detailed size charts
+    available on each product page. Free exchanges available for
+    size-related issues within 30 days.
+
+  DOC 5: "Warranty Information"
+    All electronics carry manufacturer warranty (typically 1 year).
+    Extended warranty available at checkout for select items.
+    Warranty covers manufacturing defects only, not accidental damage.
+    AppleCare+, Samsung Care+, and other brand-specific plans available.
+    Warranty claims can be initiated online or in-store.
+
+  DOC 6: "Price Match Guarantee"
+    We match prices from authorized retailers for identical products.
+    Price match requests must be submitted within 7 days of purchase.
+    Excludes marketplace sellers, auction sites, and membership-only deals.
+    Cannot be combined with other promotions or coupons.
+
+  DOC 7: "Loyalty Program & Rewards"
+    Join our rewards program for free. Earn 1 point per $1 spent.
+    100 points = $5 reward. Members get early access to sales,
+    birthday discounts (15% off), and free standard shipping.
+    VIP tier (1000+ points/year): 2x points, priority support,
+    exclusive product access.
+
+  DOC 8: "Gift Services"
+    Gift wrapping available ($4.99 per item). Gift cards available
+    in any amount from $10-$500. Gift receipts provided on request
+    (returns processed at sale price). Personalized messages included
+    with gift-wrapped orders. Corporate gift programs available
+    for orders of 10+ items.
+
+  DOC 9: "Common Product FAQs - Electronics"
+    - iPhone 15 Pro uses USB-C, not Lightning
+    - AirPods Pro 2 have Adaptive Audio and Conversation Awareness
+    - MacBook Air M3 has 18-hour battery life
+    - Samsung Galaxy S24 Ultra includes S Pen
+    - PS5 Slim is digital-only; disc drive sold separately
+    - All TVs include wall-mount compatible VESA pattern
+
+  DOC 10: "Promotion & Sale Rules"
+    Promotions cannot be combined unless explicitly stated.
+    Sale prices are valid while supplies last.
+    Coupons apply to original price, not sale price.
+    Buy-one-get-one deals: lower-priced item is free.
+    Seasonal sales: Summer (June-Aug), Back-to-School (Aug),
+    Black Friday (Nov), Holiday (Dec). Flash sales announced via email.
+
+CUSTOM KNOWLEDGE:
+  ADMIN ENDPOINT: POST /api/knowledge/add
+    Add custom policy documents, FAQ answers, brand guidelines
+    Auto-embed and store in ChromaDB
+
+  ADMIN ENDPOINT: GET /api/knowledge/list
+    List all knowledge documents with category filter
+
+  ADMIN ENDPOINT: DELETE /api/knowledge/{doc_id}
+    Remove a document from the knowledge base
+
+
+================================================================================
+14. MODULE 7: LIVE CATALOG SYNC ENGINE
+================================================================================
+
+FILE: backend/services/catalog_sync.py
+
+PURPOSE:
+  Handle catalog updates dynamically without requiring full re-upload.
+  Products change frequently: prices, availability, new SKUs, promotions.
+
+SYNC METHODS:
+
+METHOD 1: Incremental CSV Upload
+  - Upload a delta CSV with only changed products
+  - Match by sku_id → update existing or insert new
+  - Re-embed only changed products
+  - Trigger re-indexing for search
+
+METHOD 2: API Webhook (simulated)
+  - POST /api/catalog/webhook endpoint
+  - Accepts JSON payload with product updates
+  - Format: { "action": "update"|"create"|"delete", "product": {...} }
+  - Real-time update without batch processing
+
+METHOD 3: Scheduled Sync (background task)
+  - Every 5 minutes, check for products with updated_at > last_sync
+  - Re-embed changed products
+  - Update FTS5 index
+  - Log sync event
+
+EMBEDDING UPDATE STRATEGY:
+  - When product description changes: delete old embedding, create new
+  - When only price/availability changes: update SQLite only (no re-embedding)
+  - When new product added: embed and insert into ChromaDB
+  - When product deleted: remove embedding from ChromaDB
+
+SYNC LOG:
+  Track all sync events in catalog_embeddings_log table
+  Dashboard shows: last sync time, products updated, sync status
+
+ENDPOINTS:
+  POST   /api/catalog/sync/incremental     Upload delta CSV
+  POST   /api/catalog/webhook               Receive real-time update
+  GET    /api/catalog/sync/status            Last sync info
+  POST   /api/catalog/sync/trigger           Force full re-index
+
+
+================================================================================
+15. MODULE 8: ESCALATION & HANDOFF SYSTEM
+================================================================================
+
+FILE: backend/services/escalation_service.py
+FRONTEND: src/components/EscalationBanner.jsx
+           src/pages/AgentConsolePage.jsx
+
+ESCALATION TRIGGERS:
+
+  1. SENTIMENT FRUSTRATION
+     Trigger: Customer sentiment = "frustrated" for 2+ consecutive messages
+     Detection: VADER sentiment analysis + frustration keyword detection
+     Keywords: "terrible", "awful", "waste of time", "useless", "ridiculous",
+               "never again", "worst", "frustrated", "angry", "fed up"
+
+  2. REPEATED UNRESOLVED QUERY
+     Trigger: Same or similar query asked 3+ times without resolution
+     Detection: Fuzzy match current query against previous queries in session
+     Threshold: similarity > 0.8 across 3 messages
+
+  3. LOW CONFIDENCE STREAK
+     Trigger: Intent confidence < 0.3 for 3 consecutive messages
+     Indicates: AI doesn't understand what customer wants
+
+  4. CUSTOMER REQUEST
+     Trigger: Explicit phrases detected
+     Phrases: "talk to human", "speak to agent", "human please",
+              "transfer me", "I want a person", "connect me to support"
+
+  5. COMPLEX MULTI-INTENT
+     Trigger: 3+ intents detected in single message
+     Example: "I want to return my iPhone because it's broken and also
+              check if the Samsung Galaxy is in stock and what's your
+              warranty policy"
+
+ESCALATION FLOW:
+  1. Escalation triggered → create escalation record
+  2. Generate handoff summary:
+     - Customer sentiment trajectory
+     - All products discussed
+     - Intents and queries attempted
+     - AI responses given
+     - Suggested agent response (LLM-generated)
+  3. Notify agent via:
+     a. In-app notification (AlertBell component)
+     b. Real-time dashboard update
+  4. Show customer: "I'm connecting you with a specialist who can help.
+     One moment please... 🤝"
+  5. Agent sees full conversation context in Agent Console
+  6. Agent can take over: type responses as "assistant" role
+  7. Agent marks conversation resolved
+
+AGENT CONSOLE (AgentConsolePage.jsx):
+  - Split view: left = conversation list, right = active chat
+  - Customer info panel: name, session duration, sentiment trend
+  - AI suggestion panel: pre-written responses agent can use/modify
+  - Quick action buttons: "Resolve", "Transfer", "Add Note"
+  - Conversation history with AI vs agent message differentiation
+
+ENDPOINTS:
+  GET    /api/escalations                   List pending escalations
+  GET    /api/escalations/{id}              Get escalation details + history
+  POST   /api/escalations/{id}/accept       Agent accepts escalation
+  POST   /api/escalations/{id}/resolve      Mark as resolved
+  POST   /api/escalations/{id}/message      Agent sends message in conversation
+
+
+================================================================================
+16. MODULE 9: ANALYTICS & PERFORMANCE DASHBOARD
+================================================================================
+
+FILE: backend/api/analytics.py
+FRONTEND: src/pages/AnalyticsPage.jsx
+
+REAL-TIME METRICS:
+
+KPI CARDS (updated every 30 seconds):
+  - Total Conversations Today
+  - AI Resolution Rate (% resolved without escalation)
+  - Average Response Time (ms)
+  - Customer Satisfaction (CSAT) average score
+  - Active Conversations (currently ongoing)
+  - Escalation Rate (%)
+
+CHARTS:
+
+  1. Query Volume Over Time (line chart)
+     X-axis: hourly/daily, Y-axis: query count
+     Stacked: AI resolved vs escalated
+
+  2. Intent Distribution (donut chart)
+     Segments: Product Info, Pricing, Availability,
+     Return Policy, Recommendation, General
+
+  3. Response Time Trend (line chart)
+     Average response time per hour
+     Target line at 3 seconds
+
+  4. CSAT Distribution (bar chart)
+     Breakdown: 1-star to 5-star counts
+
+  5. Top Products Queried (horizontal bar chart)
+     Top 10 products by query frequency
+
+  6. Escalation Reasons (pie chart)
+     Breakdown by trigger type
+
+  7. Sentiment Trend (area chart)
+     Customer sentiment over time (positive/neutral/negative)
+
+TABLES:
+
+  Recent Conversations Table:
+    Session ID, Customer, Duration, Messages, Intents Hit,
+    Resolution Type, CSAT, Timestamp
+
+  Top Unresolved Queries:
+    Query text, count, avg confidence, suggested fix
+
+ANALYTICS ENDPOINTS:
+  GET  /api/analytics/overview              KPI summary
+  GET  /api/analytics/query-volume          Time series data
+  GET  /api/analytics/intents               Intent distribution
+  GET  /api/analytics/response-times        Response time trend
+  GET  /api/analytics/csat                  CSAT breakdown
+  GET  /api/analytics/top-products          Most queried products
+  GET  /api/analytics/escalations           Escalation analytics
+  GET  /api/analytics/sentiment             Sentiment trend
+  GET  /api/analytics/conversations         Recent conversations list
+  GET  /api/analytics/export                Export analytics as CSV
+
+
+================================================================================
+17. MODULE 10: AUTOMATIC RESPONSE QUALITY SYSTEM
+================================================================================
+
+FILE: backend/services/quality_checker.py
+
+PURPOSE:
+  Automatically evaluate AI response quality and flag poor responses
+  for human review and self-learning feedback.
+
+QUALITY CHECKS (run post-generation):
+
+  1. HALLUCINATION CHECK
+     - Verify all product names mentioned exist in catalog
+     - Verify all prices mentioned match catalog prices (±1%)
+     - Verify availability statements match catalog status
+     - Flag: "hallucination_risk" if any mismatch detected
+
+  2. RELEVANCE CHECK
+     - Cosine similarity between query and response embeddings
+     - Threshold: similarity > 0.6
+     - Flag: "off_topic" if below threshold
+
+  3. COMPLETENESS CHECK
+     - For intent-specific responses, verify required info present:
+       PRICING: price mentioned
+       AVAILABILITY: stock status mentioned
+       RETURN: policy duration mentioned
+     - Flag: "incomplete_response" if missing key info
+
+  4. TONE CHECK
+     - Sentiment analysis on response
+     - Should be positive/neutral, never negative
+     - Flag: "inappropriate_tone" if negative sentiment detected
+
+  5. LENGTH CHECK
+     - Response should be under 300 words (concise)
+     - Flag: "too_long" if exceeded
+
+QUALITY SCORE:
+  quality_score = (
+      (1 - hallucination_risk) * 0.35 +
+      relevance_score * 0.25 +
+      completeness_score * 0.25 +
+      tone_score * 0.15
+  ) * 100
+
+AUTO-REMEDIATION:
+  - If quality_score < 50: regenerate response with stricter prompt
+  - If quality_score < 30 after retry: escalate to human + flag for review
+  - Store quality scores in message record for analytics
+
+HUMAN REVIEW QUEUE:
+  - Endpoints: GET /api/quality/flagged
+  - Shows messages where quality_score < 60
+  - Agent can: approve, edit, or flag as training example
+
+
+================================================================================
+18. MODULE 11: SELF-LEARNING & CATALOG-AWARE ADAPTATION
+================================================================================
+
+FILE: backend/services/self_learner.py
+
+PURPOSE:
+  Improve conversational accuracy over time based on feedback and
+  adapt automatically when catalog changes.
+
+FEEDBACK COLLECTION:
+
+  1. THUMBS UP/DOWN on each AI response (one-click)
+  2. CSAT rating at conversation end (1-5 stars)
+  3. Agent feedback in escalation review:
+     - "AI response was accurate" / "AI response was wrong"
+     - Corrected answer text field
+     - Rating (1-5)
+
+FEEDBACK ENDPOINT: POST /api/feedback
+  Request body:
+    {
+      "message_id": integer,
+      "was_helpful": boolean,
+      "was_accurate": boolean,
+      "agent_rating": integer (1-5),
+      "agent_notes": "string",
+      "corrected_answer": "string"
+    }
+
+LEARNING MECHANISMS:
+
+  1. INTENT CLASSIFIER RETRAINING
+     - When feedback count >= 30 new records since last training
+     - Use corrected intent labels from feedback
+     - Retrain TF-IDF + Logistic Regression classifier
+     - Evaluate on held-out 20% split
+     - Replace model if accuracy improves
+
+  2. KNOWLEDGE BASE AUGMENTATION
+     - When agent provides corrected answers:
+       a. Generate new knowledge doc from corrected answer
+       b. Embed and add to ChromaDB
+       c. Source tagged as "agent_correction"
+     - When same question is asked frequently (10+ times):
+       a. Auto-generate FAQ document from best-rated AI response
+       b. Add to knowledge base
+
+  3. PRODUCT SEARCH TUNING
+     - Track which search results lead to positive feedback
+     - Adjust scoring weights for fuzzy/FTS/vector combination
+     - Boost products frequently selected by customers
+
+  4. CATALOG-DRIVEN ADAPTATION
+     - When new products added: auto-generate FAQ entries
+     - When products go out of stock: update response templates
+     - When promotions start: inject promotion context into prompts
+     - Monitor product query patterns to predict popular items
+
+SELF-LEARNING STATS ENDPOINT: GET /api/learning/stats
+  Returns:
+    {
+      "total_feedback": N,
+      "helpful_rate": float,
+      "accuracy_rate": float,
+      "last_retrained": "timestamp",
+      "intent_model_version": "v3",
+      "knowledge_docs_added": N,
+      "avg_csat": float,
+      "resolution_rate_trend": [float]
+    }
+
+FRONTEND DISPLAY: "AI Health" card on Analytics dashboard
+  - Model accuracy trend (mini line chart)
+  - "Trained on N feedback entries"
+  - Last retraining date
+  - Resolution rate improvement over time
+
+
+================================================================================
+19. FRONTEND DASHBOARD DESIGN
+================================================================================
+
+FRAMEWORK: React 18 + Vite + Tailwind CSS
+DESIGN THEME: Clean light mode with retail brand accent colors
+
+COLOR PALETTE:
+  Primary:    #2563EB (Professional Blue)
+  Secondary:  #1E293B (Dark Slate)
+  Accent:     #10B981 (Green for success/availability)
+  Warning:    #F59E0B (Amber for low stock)
+  Danger:     #EF4444 (Red for out of stock/escalation)
+  Background: #F8FAFC (Light Gray)
+  Card:       #FFFFFF (White)
+  Text:       #1E293B (Dark Slate)
+  Muted:      #64748B (Gray)
+
+TYPOGRAPHY:
+  Font: Inter (Google Fonts)
+  Headings: font-bold text-slate-900
+  Subtext: text-slate-500
+
+LAYOUT: Left sidebar navigation + main content area
+
+SIDEBAR ITEMS (with icons):
+  - Dashboard (Home icon)          /dashboard
+  - Chat Widget (MessageCircle)    /chat
+  - Product Catalog (Package)      /catalog
+  - Conversations (MessagesSquare) /conversations
+  - Agent Console (Headphones)     /agent
+  - Analytics (BarChart3)          /analytics
+  - Knowledge Base (BookOpen)      /knowledge
+  - Escalations (AlertTriangle)    /escalations
+  - AI Health (Activity)           /health
+  - Settings (Settings)            /settings
+
+PAGE 1: DASHBOARD (/dashboard)
+  Row 1 — KPI Cards (4 columns):
+    - Total Queries Today (count + % vs yesterday)
+    - AI Resolution Rate (% with progress ring)
+    - Avg Response Time (ms with trend arrow)
+    - CSAT Score (star rating display)
+  Row 2 — Charts (2 columns):
+    Left: Query Volume Over Time (area chart, 24h)
+    Right: Intent Distribution (donut chart)
+  Row 3 — Full Width:
+    Live Chat Feed (auto-updating list of active conversations)
+    Columns: Customer, Last Message (truncated), Intent, Sentiment,
+    Status, Duration
+    Color-coded rows: green=resolved, yellow=active, red=escalated
+  Row 4 — Half Width Each:
+    Left: Top Queried Products (ranked list)
+    Right: Recent Escalations (alert cards)
+
+PAGE 2: CHAT WIDGET (/chat)
+  Interactive demo of the customer-facing chat interface
+  Simulates a customer experience with pre-loaded product catalog
+  "Try asking: 'Is the iPhone 15 Pro in stock?'"
+
+PAGE 3: PRODUCT CATALOG (/catalog)
+  Upload zone + product table
+  Inline editing of price, availability, stock
+  Search/filter by category, brand, availability
+  "Add Product" modal for manual entry
+  Bulk actions: delete, update availability, set sale price
+
+PAGE 4: CONVERSATIONS (/conversations)
+  Full conversation history with filters:
+  Date range, status, resolution type, CSAT score
+  Expandable conversation view showing full chat transcript
+  Intent and sentiment badges on each message
+
+PAGE 5: AGENT CONSOLE (/agent)
+  Split-panel: pending escalations list + active conversation
+  Agent can type responses, mark resolved, transfer
+  AI-suggested responses panel (copy-paste or edit)
+  Customer context sidebar (products discussed, sentiment, duration)
+
+PAGE 6: ANALYTICS (/analytics)
+  Full analytics suite (described in Module 9)
+  Date range picker for historical analysis
+  Export CSV functionality
+
+PAGE 7: KNOWLEDGE BASE (/knowledge)
+  List of knowledge docs with category filter
+  Add new document form (textarea + category dropdown)
+  Edit/delete existing documents
+  Embedding status indicator for each doc
+
+PAGE 8: ESCALATIONS (/escalations)
+  Escalation queue with priority sorting
+  Status filters: pending, accepted, resolved
+  Escalation detail view with full context
+
+PAGE 9: AI HEALTH (/health)
+  Self-learning statistics card
+  Feedback submission history
+  Model accuracy trend chart
+  Intent classifier confusion matrix (heatmap)
+  Manual retrain trigger button
+
+ANIMATIONS:
+  - Framer Motion: page transition fade-in (0.3s)
+  - Counter animation on KPI cards (count up on load)
+  - Pulse animation on active chat indicator
+  - Typing indicator: 3 bouncing dots
+  - Product card hover: subtle lift + shadow
+  - Chart enter animations (bars slide up, donut spin in)
+
+RESPONSIVE: Desktop-first (1280px min), tablet support (768px)
+CHAT WIDGET: Fully responsive, full-screen on mobile
+
+
+================================================================================
+20. BACKEND API SPECIFICATION
+================================================================================
+
+BASE URL: http://localhost:8000/api
+
+CATALOG ENDPOINTS:
+  POST   /catalog/upload                    Upload product catalog
+  GET    /catalog/products                  List products (filterable)
+  GET    /catalog/products/{sku_id}         Get single product
+  PUT    /catalog/products/{sku_id}         Update product
+  DELETE /catalog/products/{sku_id}         Soft-delete product
+  GET    /catalog/stats                     Catalog statistics
+  POST   /catalog/sync/incremental          Incremental catalog update
+  POST   /catalog/webhook                   Real-time update webhook
+  GET    /catalog/sync/status               Sync status
+
+CHAT ENDPOINTS:
+  POST   /chat/message                      Send message, get AI response
+  GET    /chat/session/{session_id}/history  Get conversation history
+  POST   /chat/session/new                  Create new session
+  DELETE /chat/session/{session_id}         End session
+
+SEARCH ENDPOINTS:
+  GET    /search/products                   Search products by query
+  GET    /search/similar/{sku_id}           Find similar products
+
+CONVERSATION ENDPOINTS:
+  GET    /conversations                     List conversations (filterable)
+  GET    /conversations/{session_id}        Get conversation details
+  PATCH  /conversations/{session_id}/csat   Submit CSAT rating
+
+ESCALATION ENDPOINTS:
+  GET    /escalations                       List escalations
+  GET    /escalations/{id}                  Get escalation details
+  POST   /escalations/{id}/accept           Agent accepts
+  POST   /escalations/{id}/resolve          Mark resolved
+  POST   /escalations/{id}/message          Agent sends message
+
+KNOWLEDGE ENDPOINTS:
+  GET    /knowledge                         List knowledge documents
+  POST   /knowledge/add                     Add document (auto-embeds)
+  PUT    /knowledge/{doc_id}                Update document
+  DELETE /knowledge/{doc_id}                Delete document
+
+ANALYTICS ENDPOINTS:
+  GET    /analytics/overview                KPI summary
+  GET    /analytics/query-volume            Time series
+  GET    /analytics/intents                 Intent distribution
+  GET    /analytics/response-times          Response time trend
+  GET    /analytics/csat                    CSAT breakdown
+  GET    /analytics/top-products            Most queried products
+  GET    /analytics/escalations             Escalation analytics
+  GET    /analytics/sentiment               Sentiment trend
+  GET    /analytics/conversations           Recent conversations
+  GET    /analytics/export                  Export as CSV
+
+FEEDBACK ENDPOINTS:
+  POST   /feedback                          Submit feedback
+  GET    /feedback/stats                    Feedback summary
+  GET    /feedback/flagged                  Low-quality responses for review
+
+LEARNING ENDPOINTS:
+  GET    /learning/stats                    Self-learning statistics
+  POST   /learning/retrain                  Trigger manual retraining
+
+HEALTH:
+  GET    /health                            API health check + version
+
+ALL RESPONSES:
+  Success: HTTP 200 with JSON body
+  Error:   HTTP 4xx/5xx with { "error": "message", "detail": "..." }
+  Headers: Content-Type: application/json, CORS open for localhost:5173
+
+
+================================================================================
+21. DEMONSTRATION SCENARIOS
+================================================================================
+
+--- SCENARIO A: Electronics Store (PRIMARY DEMO) ---
+
+STORY:
+  An electronics retailer has uploaded their product catalog (150 SKUs).
+  A customer visits the website and opens the chat widget to ask about
+  products. The AI agent handles the conversation end-to-end.
+
+DEMO CONVERSATION FLOW:
+
+  Customer: "Hi! I'm looking for a new pair of wireless earbuds"
+  AI: "Hi there! 👋 Great choice! We have several excellent wireless
+      earbuds in our catalog. Here are our top picks:
+      [Product Card: AirPods Pro 2 - $249]
+      [Product Card: Sony WF-1000XM5 - $279]
+      [Product Card: Samsung Galaxy Buds2 Pro - $189]
+      Each offers different strengths. What matters most to you —
+      noise cancellation, battery life, or price?"
+
+  Customer: "I care most about noise cancellation. How does the
+            Sony compare to the AirPods?"
+  AI: "Great question! Here's how they compare:
+      Sony WF-1000XM5: Industry-leading ANC, 24hr battery with case,
+      supports LDAC hi-res audio — $279
+      AirPods Pro 2: Excellent ANC with Adaptive Audio, 30hr battery,
+      best for Apple ecosystem — $249
+      The Sony edges ahead on pure noise cancellation quality, while
+      the AirPods offer a more seamless experience if you use iPhone.
+      Both are ⭐ 4.8 rated."
+
+  Customer: "The Sony sounds good. Is it in stock?"
+  AI: "Yes! The Sony WF-1000XM5 is currently in stock and ready to ship.
+      📦 Standard delivery: 5-7 business days (free)
+      ⚡ Express delivery: 2-3 business days ($12.99)
+      Would you like to know about our return policy or warranty?"
+
+  Customer: "What's the return policy?"
+  AI: "For electronics, we offer a 14-day return window from the date
+      of purchase. Items must be unopened and in original packaging
+      for a full refund. If opened, a 15% restocking fee applies.
+      Defective items are always covered — just bring your receipt
+      and we'll take care of it! 📋"
+
+  Customer: "Actually, do you have anything cheaper with good ANC?"
+  AI: "Absolutely! Here are budget-friendly options with solid noise
+      cancellation:
+      [Product Card: Samsung Galaxy Buds2 Pro - $189]
+      [Product Card: Jabra Elite 85t - $149]
+      The Jabra Elite 85t at $149 offers surprisingly good ANC for
+      the price and has ⭐ 4.6 from over 1,200 reviews.
+      Would you like more details on either of these?"
+
+WHAT THE SYSTEM DEMONSTRATES:
+  1. Natural language understanding across 5 intents in one conversation
+  2. Product search and comparison capabilities
+  3. Accurate pricing, availability, and policy information
+  4. Product card rendering for visual context
+  5. Follow-up question suggestions
+  6. Multi-turn context awareness ("it" → Sony WF-1000XM5)
+  7. Budget-aware recommendation adaptation
+
+--- SCENARIO B: Fashion Retail ---
+
+STORY:
+  A fashion retailer catalog (120 SKUs). Customer shopping for an outfit.
+
+DEMO CONVERSATION:
+
+  Customer: "I need a dress for a summer wedding, something elegant
+            but not too expensive"
+  AI: "How lovely! 👗 For a summer wedding, I'd recommend:
+      [Product Card: Floral Midi Wrap Dress - $79.99]
+      [Product Card: Satin Slip Dress - $89.99]
+      [Product Card: Linen Blend Maxi Dress - $69.99]
+      The Floral Midi Wrap is our best-seller for weddings — elegant
+      and comfortable for outdoor events. All under $90!
+      What size and color are you looking for?"
+
+  Customer: "Size M, and I'd love something in blue or green"
+  AI: "Great choices for summer! Checking availability in size M:
+      ✅ Floral Midi Wrap Dress — Blue Floral available in M
+      ✅ Linen Blend Maxi — Sage Green available in M
+      ❌ Satin Slip Dress — Blue is out of stock in M (expected restock: 2 weeks)
+      The Blue Floral Midi would be perfect for a wedding!
+      Our return policy: 30-day returns with tags attached."
+
+--- SCENARIO C: Escalation Demo ---
+
+  Customer: "I bought a laptop last week and it's already broken!
+            This is ridiculous, I want my money back NOW"
+  AI: [Detects frustrated sentiment]
+      "I completely understand your frustration, and I'm sorry to hear
+      about this experience. 😔 A defective laptop is unacceptable.
+      For electronics, defective items can be returned at any time —
+      there's no time limit. You'll need your receipt and the original
+      packaging. I'd like to connect you with a specialist who can
+      expedite this for you right away. One moment..."
+  [ESCALATION TRIGGERED → Agent notified → Agent takes over]
+
+
+================================================================================
+22. DEMO USAGE GUIDE
+================================================================================
+
+STEP 1: SETUP
+  a) Clone project repository
+  b) Copy .env.example to .env
+     Fill in: AZURE_API_KEY, AZURE_BASE_URL=https://genailab.tcs.in
+  c) Install Python deps: pip install -r requirements.txt
+  d) Install Node deps: cd frontend && npm install
+  e) Initialize DB: python backend/scripts/init_db.py
+  f) Seed knowledge base: python backend/scripts/seed_knowledge.py
+  g) Generate synthetic data: python backend/utils/generate_synthetic_data.py
+     → Creates: backend/demo_data/catalog_electronics.csv
+     → Creates: backend/demo_data/catalog_fashion.csv
+     → Creates: backend/demo_data/queries_electronics.json
+     → Creates: backend/demo_data/queries_fashion.json
+
+STEP 2: START SERVERS
+  Terminal 1: cd backend && uvicorn main:app --reload --port 8000
+  Terminal 2: cd frontend && npm run dev
+  Open browser: http://localhost:5173
+
+STEP 3: DEMO WALKTHROUGH (Judges / Hackathon)
+  1. Open Dashboard — show empty state with "Upload Catalog" CTA
+  2. Go to Catalog — drag and drop catalog_electronics.csv
+  3. Watch column validation check run (all green)
+  4. Click "Index Products" — progress indicator appears
+  5. Product table populates with 150 products, category badges
+  6. Go to Chat Widget — see welcome message and quick reply chips
+  7. Type: "Hi! I'm looking for wireless earbuds"
+  8. Show AI response with 3 product cards
+  9. Type: "How does the Sony compare to the AirPods?"
+  10. Show AI comparison response with side-by-side details
+  11. Type: "Is the Sony in stock?"
+  12. Show availability response with shipping options
+  13. Type: "What's your return policy?"
+  14. Show policy response citing electronics-specific terms
+  15. Type: "Actually, anything cheaper with good noise cancellation?"
+  16. Show budget-adapted recommendations
+  17. Go to Analytics — show KPI cards populated with conversation data
+  18. Show intent distribution chart (5 intents detected)
+  19. Go to Agent Console — show conversation logged with full history
+  20. Go back to Chat — simulate frustrated customer:
+      "This is terrible, I've been waiting forever, let me talk to a human!"
+  21. Show escalation trigger → notification appears → agent takes over
+  22. Submit CSAT rating (5 stars) on resolved conversation
+  23. Go to AI Health — show feedback registered
+  24. Upload catalog_fashion.csv — demonstrate cross-catalog support
+  25. Switch to fashion chat — ask about dresses and sizing
+
+
+================================================================================
+23. EVALUATION CRITERIA ALIGNMENT
+================================================================================
+
+INNOVATION:
+  ✓ Multi-intent understanding in single conversation
+  ✓ RAG-powered contextual responses (not just template text)
+  ✓ Catalog-aware AI that adapts to live product data changes
+  ✓ Self-learning from customer and agent feedback (closes the loop)
+  ✓ Sentiment-driven escalation (proactive, not reactive)
+
+TECHNICAL DEPTH:
+  ✓ FastAPI async backend with proper background tasks
+  ✓ Haystack 2.x RAG pipeline with ChromaDB
+  ✓ Hybrid search: fuzzy matching + FTS5 + vector similarity
+  ✓ Azure LLM + embeddings integration via langchain-openai
+  ✓ Intent classification ensemble (rule-based + ML)
+  ✓ Entity extraction with catalog fuzzy matching
+
+BUSINESS VALUE:
+  ✓ Reduces agent workload by 60%+ through AI auto-resolution
+  ✓ Handles 1000s of daily queries without linear agent scaling
+  ✓ Consistent brand messaging across all interactions
+  ✓ Covers full customer journey: query → answer → escalate if needed → learn
+  ✓ Measurable metrics: resolution rate, CSAT, response time
+
+UX/DESIGN:
+  ✓ Clean, professional chat widget with product card rendering
+  ✓ Real-time analytics dashboard with live metrics
+  ✓ Agent console with AI-assisted response suggestions
+  ✓ Smooth animations and typing indicators
+  ✓ Responsive design supporting desktop and mobile
+
+
+================================================================================
+24. DIRECTORY STRUCTURE
+================================================================================
+
+retailgenie-ai/
+├── README.md
+├── .env.example
+├── requirements.txt
+│
+├── backend/
+│   ├── main.py                         FastAPI app entry point
+│   ├── database.py                     SQLAlchemy setup + SQLite
+│   ├── models.py                       SQLAlchemy ORM models
+│   ├── schemas.py                      Pydantic request/response schemas
+│   │
+│   ├── api/
+│   │   ├── catalog.py                  Catalog CRUD endpoints
+│   │   ├── chat.py                     Chat message endpoints
+│   │   ├── search.py                   Product search endpoints
+│   │   ├── conversations.py            Conversation history endpoints
+│   │   ├── escalations.py              Escalation management endpoints
+│   │   ├── knowledge.py                Knowledge base endpoints
+│   │   ├── analytics.py                Analytics endpoints
+│   │   ├── feedback.py                 Feedback endpoints
+│   │   └── learning.py                 Self-learning endpoints
+│   │
+│   ├── services/
+│   │   ├── intent_entity_engine.py     Intent + entity detection
+│   │   ├── conversational_agent.py     Haystack RAG + Azure LLM
+│   │   ├── product_search.py           Hybrid product search
+│   │   ├── sentiment_analyzer.py       Customer sentiment detection
+│   │   ├── escalation_service.py       Escalation triggers + handoff
+│   │   ├── quality_checker.py          Response quality evaluation
+│   │   ├── catalog_sync.py             Live catalog synchronization
+│   │   ├── knowledge_base.py           ChromaDB management
+│   │   └── self_learner.py             Feedback + retraining
+│   │
+│   ├── utils/
+│   │   ├── generate_synthetic_data.py  Synthetic data generator
+│   │   └── csv_parser.py               CSV/JSON validation + parsing
+│   │
+│   ├── scripts/
+│   │   ├── init_db.py                  Create SQLite tables
+│   │   └── seed_knowledge.py           Seed ChromaDB knowledge docs
+│   │
+│   ├── models/
+│   │   └── intent_classifier.pkl       Trained scikit-learn model
+│   │
+│   ├── demo_data/
+│   │   ├── catalog_electronics.csv     Demo scenario A catalog
+│   │   ├── catalog_fashion.csv         Demo scenario B catalog
+│   │   ├── queries_electronics.json    Test queries for electronics
+│   │   └── queries_fashion.json        Test queries for fashion
+│   │
+│   └── chroma_store/                   ChromaDB persistent store
+│
+└── frontend/
+    ├── index.html
+    ├── vite.config.js
+    ├── tailwind.config.js
+    ├── package.json
+    │
+    └── src/
+        ├── App.jsx                    Router setup
+        ├── main.jsx                   Entry point
+        ├── api/
+        │   └── client.js              Axios API client
+        │
+        ├── pages/
+        │   ├── DashboardPage.jsx
+        │   ├── ChatPage.jsx
+        │   ├── CatalogPage.jsx
+        │   ├── ConversationsPage.jsx
+        │   ├── AgentConsolePage.jsx
+        │   ├── AnalyticsPage.jsx
+        │   ├── KnowledgePage.jsx
+        │   ├── EscalationsPage.jsx
+        │   ├── HealthPage.jsx
+        │   └── SettingsPage.jsx
+        │
+        ├── components/
+        │   ├── Layout.jsx             Sidebar + header layout
+        │   ├── ChatWidget.jsx         Embeddable chat widget
+        │   ├── ChatBubble.jsx         Chat message component
+        │   ├── ProductCard.jsx        Product display card
+        │   ├── TypingIndicator.jsx    Animated typing dots
+        │   ├── SuggestionChips.jsx    Quick reply buttons
+        │   ├── KPICard.jsx            Animated KPI card
+        │   ├── ConversationList.jsx   Conversation table
+        │   ├── EscalationBanner.jsx   Escalation notification
+        │   ├── SentimentBadge.jsx     Color-coded sentiment
+        │   ├── IntentBadge.jsx        Intent classification tag
+        │   ├── FeedbackWidget.jsx     Thumbs up/down + rating
+        │   ├── CSATWidget.jsx         Star rating component
+        │   └── QualityBadge.jsx       Response quality indicator
+        │
+        └── hooks/
+            ├── useChat.js             Chat state management
+            ├── useWebSocket.js        Real-time connection
+            └── useAnalytics.js        Analytics data fetching
+
+
+================================================================================
+25. ENVIRONMENT VARIABLES & CONFIGURATION
+================================================================================
+
+FILE: .env (root of project)
+
+# Azure LLM Configuration
+AZURE_API_KEY=your_hackathon_api_key_here
+AZURE_BASE_URL=https://genailab.tcs.in
+AZURE_LLM_MODEL=azure/genailab-maas-gpt-4o
+AZURE_MINI_MODEL=azure/genailab-maas-gpt-4o-mini
+AZURE_EMBEDDING_MODEL=azure/genailab-maas-text-embedding-3-large
+
+# Database
+SQLITE_DB_PATH=./retailgenie.db
+
+# ChromaDB
+CHROMA_PERSIST_PATH=./chroma_store
+CHROMA_COLLECTION=retail_knowledge_base
+
+# Application
+APP_ENV=development
+STORE_NAME=RetailGenie Store
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+LOG_LEVEL=INFO
+
+# Chat Configuration
+MAX_CONVERSATION_HISTORY=8
+ESCALATION_SENTIMENT_THRESHOLD=2
+ESCALATION_CONFIDENCE_THRESHOLD=0.3
+ESCALATION_REPEAT_THRESHOLD=3
+
+# Self-Learning
+RETRAIN_FEEDBACK_THRESHOLD=30
+INTENT_MODEL_PATH=./backend/models/intent_classifier.pkl
+
+# Quality
+QUALITY_REJECT_THRESHOLD=30
+QUALITY_FLAG_THRESHOLD=60
+
+FILE: .env.example
+  Same as above with placeholder values.
+  Commit .env.example to git. NEVER commit .env.
+
+
+================================================================================
+26. IMPLEMENTATION SEQUENCE (BUILD ORDER)
+================================================================================
+
+PHASE 1: Foundation (Do First)
+  1.  Create project directory structure
+  2.  Initialize FastAPI app (main.py) with CORS and health endpoint
+  3.  Create SQLite DB with all tables (models.py + init_db.py)
+  4.  Create catalog upload endpoint and parser (catalog.py + csv_parser.py)
+  5.  Create React app with Vite + Tailwind setup
+  6.  Build sidebar layout and routing (App.jsx + Layout.jsx)
+  7.  Build Catalog page with upload, table, and inline editing
+  8.  Generate synthetic catalog CSVs (generate_synthetic_data.py)
+
+PHASE 2: Core Intelligence (Do Second)
+  9.  Build IntentEntityEngine (rule-based + ML classifier)
+  10. Train and save initial intent classifier on synthetic queries
+  11. Build ProductSearchEngine (fuzzy + FTS5 + vector hybrid)
+  12. Seed ChromaDB knowledge base (seed_knowledge.py)
+  13. Index product catalog into ChromaDB
+  14. Build ConversationalAgent with Haystack RAG + Azure LLM
+  15. Build ChatWidget and ChatPage frontend
+  16. Build product card rendering component
+  17. Implement multi-turn conversation with context memory
+
+PHASE 3: Advanced Features (Do Third)
+  18. Build SentimentAnalyzer (VADER + frustration keywords)
+  19. Build EscalationService with all 5 trigger conditions
+  20. Build AgentConsole page for human handoff
+  21. Build QualityChecker for response evaluation
+  22. Build Analytics API and Dashboard page
+  23. Build CSAT rating widget and feedback collection
+
+PHASE 4: Self-Learning & Polish (Do Fourth)
+  24. Build Feedback endpoint and storage
+  25. Build SelfLearner with retraining pipeline
+  26. Build AI Health page with learning stats
+  27. Build Knowledge base management page
+  28. Add Framer Motion animations
+  29. Build CatalogSync for incremental updates
+
+PHASE 5: Demo Preparation (Do Last)
+  30. Generate synthetic query test sets (queries_electronics.json)
+  31. Build demo conversation scenarios
+  32. End-to-end testing with both catalog scenarios
+  33. Test escalation flow with frustrated customer simulation
+  34. Optimize response times (< 3 second target)
+  35. Write README with setup instructions
+  36. Prepare 5-minute demo script for judges
